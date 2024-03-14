@@ -25,7 +25,13 @@ def generate_graph(type_):
             ('quantity' ,'ipc') , ('quantity' ,'unique_skus') ,
             ('orders' ,'ipc') , ('orders' ,'unique_skus') ,
             ('orders' ,'aov'),
-            ('gmv','aov') 
+            ('gmv','aov')
+        ])
+        return causal_graph
+    elif type_ == "retention":
+        causal_graph = nx.DiGraph([
+            ('new_users_share' , 'retention') ,('new_user_retention' ,'retention') ,
+            ('existing_users_share' , 'retention') ,('existing_user_retention' ,'retention') 
         ])
         return causal_graph
     else:
@@ -34,36 +40,23 @@ def generate_graph(type_):
 
 
 
-#function to generate the dataframes 
+#function to generate the dataframes
 def generate_data(type_ , engine ,inputs_dict):
-    #Other types to be implemented : sku , monthly dynamics , 
-    cond_str_list = []
-    cond_str = ""
-    for key , value in inputs_dict.items():
-        if key == 'initial_date':
-            cond_str_list.append(f"a.date >= '{value}'")
-        
-        if key == 'final_date':
-            cond_str_list.append(f"a.date <= '{value}'")
-        
-        if key == 'store':
-            cond_str_list.append(f"a.{key} = '{value}'")
-        
-        if key == 'source_name':
-            cond_str_list.append(f"a.{key} = '{value}'")
-    
-        
-    for i in range(len(cond_str_list)):
-        cond_str += cond_str_list[i]
-        if i != len(cond_str_list)-1 :
-            cond_str += " and "
-
-
+    #Other types to be implemented : sku , monthly dynamics ,
     with engine.connect() as conn, conn.begin():
-        total_data_query = generate_total_data_query(cond_str=cond_str)
+        total_data_query = generate_total_data_query(type_ = type_ , inputs_dict = inputs_dict)
         df = pd.DataFrame()
         df = pd.read_sql(total_data_query, conn)
-        conn.close()    
+        conn.close()
     df.fillna(0 , inplace = True)
     return df
-    
+
+#function to return max date from the data in the database
+def get_max_date(engine):
+    final_date = datetime.today().strftime('%Y-%m-%d')
+    with engine.connect() as conn, conn.begin():
+        df = pd.DataFrame()
+        df = pd.read_sql('''select max(date) as max_date from order_item''', conn)
+        conn.close()  
+    final_date = pd.to_datetime(df['max_date'], format='%Y-%m-%d')
+    return final_date
