@@ -20,9 +20,9 @@ warnings.filterwarnings('ignore')
 
 ################################################################### establishing connection to postgres database #############################################################
 
-password_postgres = 'f15fd380627faa60a45fcc286d45f6e9610e'
-username_postgres = 'adjay'
-connection_string = '''postgresql://'''+f'''{username_postgres}'''+''':'''+f'''{password_postgres}'''+'''@dookan-dev.claxyccbejgz.eu-west-1.rds.amazonaws.com:5432/dookan'''
+password_postgres = ''
+username_postgres = ''
+connection_string = ''''''
 engine = create_engine(connection_string)
 
 #######################################################   generating the datasets for total_data , normal_data , outlier_data    #############################################
